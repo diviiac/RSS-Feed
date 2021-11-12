@@ -38,30 +38,16 @@ if str_session is not None and str_session != "":
 def create_feed_checker(feed_url):
     def check_feed():
         FEED = feedparser.parse(feed_url)
-        if len(FEED.entries) == 0:
-            return
         entry = FEED.entries[0]
+        enid = {entry.id}
         if entry.id != db.get_link(feed_url).link:
                        # ↓ Edit this message as your needs.
-            if "eztv.re" in entry.link:   
-                message = f"{mirr_cmd} {entry.torrent_magneturi}"
-            elif "yts.mx" in entry.link:
-                message = f"{mirr_cmd} {entry.links[1]['href']}"
-            elif "rarbg" in entry.link:
-                message = f"{mirr_cmd} {entry.link}"
-            elif "watercache" in entry.link:
-                message = f"{mirr_cmd} {entry.link}"
-            elif "limetorrents.pro" in entry.link:
-                message = f"{mirr_cmd} {entry.link}"
-            elif "etorrent.click" in entry.link:
-                message = f"{mirr_cmd} {entry.link}"
+            if "eztv.re" in enid or "yts.mx" in enid:   
+                message = f"/leech@Chaprileechbot {entry.torrent_magneturi}"
             else:
-                message = f"{mirr_cmd} {entry.link}"
+                message = f"/leech@Chaprileechbot {entry.link}"
             try:
-                msg = app.send_message(log_channel, message)
-                if app2 is not None:
-                    mirr_msg = f"{mirr_cmd} {entry.link}"
-                    app2.send_message(mirr_chat, message)
+                app.send_message(log_channel, message)
                 db.update_link(feed_url, entry.id)
             except FloodWait as e:
                 print(f"FloodWait: {e.x} seconds")
@@ -78,6 +64,4 @@ for feed_url in feed_urls:
     feed_checker = create_feed_checker(feed_url)
     scheduler.add_job(feed_checker, "interval", seconds=check_interval, max_instances=max_instances)
 scheduler.start()
-if app2 is not None:
-    app2.start()
 app.run()
